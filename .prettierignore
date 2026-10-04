@@ -1,0 +1,11 @@
+.next
+coverage
+node_modules
+design/lovable-reference
+docs
+design
+tasks
+scripts/README.md
+AGENTS.md
+README.md
+package-lock.json

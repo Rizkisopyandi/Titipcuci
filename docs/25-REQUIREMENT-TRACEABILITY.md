@@ -1,0 +1,53 @@
+# 25 — Requirement Traceability Matrix
+
+Status awal semua requirement: `SPECIFIED`; berubah menjadi `IMPLEMENTED` hanya dengan link code/migration/test evidence. DB menggunakan nama tabel dari [Database Design](08-DATABASE-DESIGN.md).
+
+| Requirement                         | Screen                   | API/event                             | DB                                       | Permission                                 | Test            |
+| ----------------------------------- | ------------------------ | ------------------------------------- | ---------------------------------------- | ------------------------------------------ | --------------- |
+| REQ-ORD-001 create order            | SCR-CUS-002/003          | API-ORD-001, ORDER_CREATED            | orders, order_items, slots               | Customer own create/read; Admin/Owner read | TST-E2E-ORD-001 |
+| REQ-ORD-002 serviceability/capacity | SCR-CUS-002              | GET serviceability/slots, API-ORD-001 | service_areas, pickup_slots              | public/auth read active; server reserve    | TST-INT-ORD-002 |
+| REQ-ORD-003 reschedule/cancel       | SCR-CUS-003, SCR-ADM-003 | API-ORD-002                           | orders, pickup_slots, tasks, history     | own within window/Admin                    | TST-E2E-EXC-001 |
+| REQ-ORD-004 realtime timeline       | SCR-CUS-003, SCR-ADM-003 | order channel, ORDER_STATUS_CHANGED   | orders, history, outbox                  | own/Admin/Owner read                       | TST-INT-RT-001  |
+| REQ-ORD-005 delay/hold              | SCR-ADM-003              | delay/hold/resume                     | orders, history                          | Admin write, Customer own read             | TST-E2E-EXC-001 |
+| REQ-PUP-001 pickup ops              | SCR-ADM-004              | API-PUP-001, PICKUP_*                 | tasks, orders, history                   | assigned Admin write                       | TST-E2E-PUP-001 |
+| REQ-PUP-002 live pickup             | SCR-CUS-004, SCR-ADM-004 | task location channel                 | ephemeral session/task                   | assigned publish; own Customer read        | TST-E2E-PUP-001 |
+| REQ-PUP-003 bag/condition/proof     | SCR-ADM-005, SCR-CUS-003 | pickup complete/evidence              | bag_records, condition_records, evidence | Admin write; Customer safe own read        | TST-INT-PUP-003 |
+| REQ-WGT-001 actual weight           | SCR-ADM-006, SCR-CUS-005 | API-WGT-001, WEIGHT_RECORDED          | order_items, audit                       | Admin write; own Customer read             | TST-INT-INV-001 |
+| REQ-INV-001 pricing/invoice         | SCR-ADM-007, SCR-CUS-005 | API-INV-001, INVOICE_ISSUED           | invoices, invoice_items, price_versions  | server create; roles scoped read           | TST-INT-INV-001 |
+| REQ-APR-001 approval                | SCR-CUS-003, SCR-ADM-003 | API-APR-001, APPROVAL_*               | approval_requests, history               | Admin propose; own Customer respond        | TST-E2E-EXC-001 |
+| REQ-PAY-001 QRIS/VA                 | SCR-CUS-006              | API-PAY-001                           | payments, invoices                       | own Customer create/read                   | TST-E2E-PAY-001 |
+| REQ-PAY-002 verified webhook        | SCR-CUS-006, SCR-ADM-013 | API-PAY-002, PAYMENT_PAID             | payments, events, invoice, order         | system only mutate paid                    | TST-INT-PAY-001 |
+| REQ-PAY-003 idempotency             | no direct UI             | API-PAY-002                           | payment_events, outbox                   | system                                     | TST-INT-PAY-001 |
+| REQ-PAY-004 expiry/retry            | SCR-CUS-006              | payment create/webhook/cron           | payments, history                        | own Customer retry                         | TST-E2E-EXC-001 |
+| REQ-PAY-005 refund simulation       | SCR-OWN-006, SCR-ADM-013 | refund request/approve                | refund_requests, audit                   | Admin request; Owner approve               | TST-INT-PAY-005 |
+| REQ-PRC-001 stages                  | SCR-ADM-008, SCR-CUS-007 | process stage commands                | laundry_processes, orders                | Admin write; own Customer read             | TST-E2E-PRC-001 |
+| REQ-QC-001 QC/reprocess             | SCR-ADM-009, SCR-CUS-007 | API-QC-001, QC_*                      | quality_checks, processes                | Admin write; Owner read                    | TST-E2E-PRC-001 |
+| REQ-DLV-001 live/proof delivery     | SCR-ADM-010, SCR-CUS-008 | API-DLV-001, DELIVERY_*               | tasks, evidence, orders                  | assigned Admin write; own Customer read    | TST-E2E-DLV-001 |
+| REQ-DLV-002 failed delivery         | SCR-ADM-010, SCR-CUS-003 | delivery fail/reschedule              | tasks, history                           | Admin write; Customer coordinate           | TST-E2E-EXC-001 |
+| REQ-REV-001 review                  | SCR-CUS-010              | POST review                           | reviews                                  | own completed order                        | TST-INT-REV-001 |
+| REQ-CMP-001 complaint/evidence      | SCR-CUS-011              | API-CMP-001                           | complaints, events, evidence             | own Customer create/read                   | TST-E2E-CMP-001 |
+| REQ-CMP-002 resolve                 | SCR-ADM-011, SCR-OWN-007 | complaint events/resolve              | complaints, events, refunds              | Admin handle; Owner oversee                | TST-E2E-CMP-001 |
+| REQ-NOT-001 notifications           | SCR-CUS-014              | domain events                         | notifications, outbox                    | recipient read; system create              | TST-INT-NOT-001 |
+| REQ-AUD-001 audit                   | SCR-OWN-008              | audit events                          | audit_logs                               | Owner read; system append                  | TST-SEC-AUD-001 |
+| REQ-SEC-001 platform security       | all                      | all scoped endpoints                  | all exposed tables                       | RLS matrix                                 | TST-SEC-RLS-001 |
+| REQ-RT-001 reconcile realtime       | active screens           | private channels                      | outbox/source tables                     | scoped subscribe                           | TST-INT-RT-001  |
+| REQ-OWN-001 analytics               | SCR-OWN-001/002          | GET analytics                         | invoices/orders/etc views                | Owner only                                 | TST-INT-KPI-001 |
+| REQ-OPS-001 operability             | none                     | health/cron                           | migrations/seeds                         | deploy identity                            | TST-OPS-001     |
+
+Agent wajib menambah kolom `Evidence` pada working copy atau task record saat implementasi, bukan mengubah requirement ID.
+
+## Implementation evidence
+
+| Requirement | Milestone | Status | Evidence |
+| --- | --- | --- | --- |
+| REQ-OPS-001 | M0 Foundation | APPROVED / COMPLETE | `app/api/health/route.ts`, `app/health/page.tsx`, `lib/config/*`, `lib/adapters/*`, `lib/observability/*`, `supabase/`, `.github/workflows/ci.yml`; M0 acceptance 2026-10-03 |
+| REQ-SEC-001 | M1 Auth + RBAC | ACCEPTED WITH DOCUMENTED CAVEATS | `features/auth/*`, `lib/auth/*`, `proxy.ts`, `app/(auth)/*`, `app/(protected)/*`, `app/auth/callback/route.ts`, `supabase/migrations/20261003000100_m1_auth_profiles.sql`; Owner accepted 2026-10-04 with provider email rate-limit and custom cookie-harness caveats retained in `tasks/BLOCKED.md` |
+| REQ-ORD-001 | M2 Customer Order | ACCEPTED / LIVE VERIFIED | `features/orders/*`, `app/(protected)/app/*`, `app/api/v1/orders/*`, `supabase/migrations/20261004000100_m2_customer_orders.sql`; remote create returned `PENDING_CONFIRMATION` and Rp74.000 server estimate; own/cross-customer RLS, direct-write denial, idempotency, cleanup passed; Owner accepted M2 before M3 started |
+| REQ-ORD-002 | M2 Customer Order | ACCEPTED / LIVE VERIFIED | PostGIS inside/outside serviceability, active service/price reads, 3 future slots, atomic capacity-one reservation and second-customer `SLOT_001` conflict passed against linked project; reproducible master in `supabase/seeds/m2_live_verification.sql` and assertions in `supabase/tests/m2_live_verification.sql`; Owner accepted M2 before M3 started |
+| REQ-ORD-003 | M3 Admin Order Operation | PARTIAL — M3 ADMIN GUARDS IMPLEMENTED | Admin cancel from `CONFIRMED`/`PICKUP_SCHEDULED` with required reason, atomic slot release, task close, history/event/notification/audit in `admin_transition_order`; Customer reschedule/cancel remains outside M3 |
+| REQ-ORD-004 | M3 Admin Order Operation | PARTIAL — SOURCE SYNCHRONIZED | Admin and Customer detail read the same order/history source with Customer-own RLS; realtime subscription remains a later milestone |
+| REQ-PUP-001 | M3 Admin Order Operation | ACCEPTED / LIVE VERIFIED | `features/admin-orders/*`, `app/(protected)/admin/*`, API confirm/reject/cancel/pickup/receive routes, assigned-Admin DB guards, version CAS, and idempotent receipts; remote confirm, invalid transition denial, assigned-Admin denial, pickup start/arrive/complete, receive, and cleanup passed; Owner accepted M3 before M4 started |
+| REQ-PUP-003 | M3 Admin Order Operation | ACCEPTED / LIVE VERIFIED | `pickup_delivery_tasks`, `bag_records`, `condition_records`, private `order-evidence` bucket, safe Customer metadata grant, bag mismatch guard, and pickup completion validation; remote records and Customer safe-read assertions passed; Owner accepted M3 before M4 started |
+| REQ-AUD-001 | M3 Admin Order Operation | PARTIAL — M3 MUTATIONS AUDITED | Append-only `audit_logs` records M3 operational commands with actor, before/after state, reason, and correlation ID; Owner audit-log product screen remains M10 |
+| REQ-WGT-001 | M4 Actual Weight + Final Invoice | LOCAL VERIFIED / READY FOR OWNER CODE ACCEPTANCE | `features/billing/*`, Admin weight/correction panel, `POST /api/v1/orders/{id}/weight`, `record_actual_weight`, Admin-only RPC, direct-write denial, positive/all-item validation, `WEIGHT_RECORDED`, history/notification/audit; focused M4 and full suite passed |
+| REQ-INV-001 | M4 Actual Weight + Final Invoice | LOCAL VERIFIED / READY FOR OWNER CODE ACCEPTANCE | `invoices`, `invoice_items`, `issue_final_invoice`, locked order pricing snapshot, minimum-charge formula, immutable triggers, one-invoice/order constraint, Customer/Admin RLS, and shared canonical pricing breakdown; 17/17 focused tests, 85/85 full suite, and build passed; no payment execution |
