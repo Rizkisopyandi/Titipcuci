@@ -1,6 +1,9 @@
 # TitipCuci — Technical Specification Review (WBS 2.1–2.11)
 
 **Tanggal review:** 8 Oktober 2026 (WIB)  
+
+> **PEMBARUAN KONTEKS — 8 OKTOBER 2026:** Pengguna menjelaskan bahwa repository GitHub pribadi **belum versi pengembangan paling matang**; aplikasi lebih lengkap dikembangkan teman satu tim dan memakai **Supabase yang sama**. Pengguna melaporkan bahwa di sisi pengembangannya bagian yang belum finalisasi adalah **Payment** (detail teknis belum dikonfirmasi). Oleh karena itu, ketidaksamaan GitHub `main` vs database harus diklasifikasi sebagai **perbedaan cakupan source yang diaudit**, bukan otomatis bug/failure sistem. Domain Customer yang diberikan pengguna adalah `https://titipcuci.vercel.app/login`; belum ada verifikasi login interaktif. Catatan terbaru dan lengkap: [PROJECT_DISCUSSION_MASTER_LOG.md](PROJECT_DISCUSSION_MASTER_LOG.md).
+
 **Dokumen:** draft review teknis untuk persetujuan penanggung jawab; tidak mengubah baseline SimpleWBS.  
 **Sumber aktual:** GitHub `main` commit `a64c9af8dc00d88a7a1b54d3f92749c6fc2652e3`, Supabase `titipcuci-dev` (`uydhmkhgpeynswxkaxod`), metadata Vercel `titipcuci` (deployment `dpl_BwKYzLNssy3MyiyQiRddjaDYamjA`).  
 **Sumber desain/target:** `docs/00` sampai `docs/40` di GitHub; WBS original `wbs_Laundry_Online_2026-10-08.json`.
@@ -161,3 +164,11 @@ ERD harus menggunakan 28 tabel dari `public` dan relasi `profiles.id -> auth.use
 - [Vercel deployment alias](https://titipcuci-beryl.vercel.app/)
 
 **Review conclusion:** **Dokumentasi WBS 2 sudah diperkaya secara substansial dan tersedia untuk review.** Closure `Completed` keseluruhan **ditahan**, terutama menunggu TS-01/03/04/05/10, tanpa menghalangi tim melanjutkan audit implementasi dan pengujian di WBS berikutnya.
+
+## Addendum hasil diskusi tim — 8 Oktober 2026
+
+- Hasil inspeksi GitHub `main` hanya berlaku untuk repository pribadi yang diperiksa; developer teman mempunyai basis implementasi lebih matang sehingga TS-01, TS-06, TS-07 dan TS-08 **tidak membuktikan** kegagalan aplikasi tim.
+- Pernyataan terbaru pengguna: **payment belum finalisasi pada sisi pengembangannya**, namun bagian spesifiknya (QRIS UI, Midtrans Sandbox, webhook/callback, atau lain) belum dipastikan.
+- Penilaian fitur yang tersedia pada web Customer harus diambil dari observasi aktual `https://titipcuci.vercel.app/login` dengan metode yang diizinkan atau screenshot redacted; endpoint konektor Vercel yang tidak menemukan alias tersebut dalam scope pengguna **bukan pembuktian website tidak ada**.
+- WBS 2 tetap **in progress / pending review sign-off**. Jangan ubah sumber WBS asli, GitHub `main`, atau Supabase hanya berdasarkan temuan audit.
+- Riwayat keputusan dan perubahan konteks tercatat di [Project Discussion Master Log](PROJECT_DISCUSSION_MASTER_LOG.md).
